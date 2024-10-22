@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: laravel
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root --silent"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, pdo, pdo_mysql
+
+    - name: Install Composer dependencies
+      run: composer install
+      working-directory: ./app
+
+    - name: Run tests
+      run: php artisan test
+      working-directory: ./app
+
+    - name: Build Docker container
+      run: |
+        docker-compose build
+
+    - name: Run Docker container
+      run: |
+        docker-compose up -d
