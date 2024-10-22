@@ -40,6 +40,10 @@ jobs:
       run: composer install
       working-directory: .
 
+    - name: Create .env file
+      run: cp .env.example .env
+      working-directory: .
+
     - name: Generate APP_KEY
       run: php artisan key:generate
       working-directory: .
