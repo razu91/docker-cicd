@@ -16,17 +16,21 @@ RUN a2enmod rewrite
 # Set the working directory
 WORKDIR /var/www/html
 
-# Copy the Laravel app files into the container
-COPY app/ ./
-
-# Copy the environment variable file
-COPY .env ./
+# Copy composer files first to leverage caching
+COPY composer.json composer.lock ./
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 # Install Laravel dependencies
-RUN composer install
+RUN composer install --no-scripts --no-autoloader
+
+# Copy the rest of the Laravel app files into the container
+COPY app/ ./
+COPY .env ./
+
+# Run Composer autoload and scripts
+RUN composer dump-autoload --optimize
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
