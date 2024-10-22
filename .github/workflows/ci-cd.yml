@@ -38,7 +38,7 @@ jobs:
 
     - name: Install Composer dependencies
       run: composer install
-      working-directory: ./app
+      working-directory: .
 
     - name: Run tests
       run: php artisan test
